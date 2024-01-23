@@ -69,8 +69,8 @@ class HookEntry : IXposedHookZygoteInit, IXposedHookLoadPackage {
                         TelephonyRegistryHooker().hookListen(lpparam)
 
                         // For Android 12 and MIUI, run this hook
-                        when (Build.VERSION.SDK_INT) {
-                            Build.VERSION_CODES.S -> {
+//                        when (Build.VERSION.SDK_INT) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 if (Miui().isMIUI()) {
                                     MiuiBlurLocationManagerHookerS().hookGetBlurryLocationS(lpparam)
                                 } else if (Oplus().isOplus()) {
@@ -81,7 +81,7 @@ class HookEntry : IXposedHookZygoteInit, IXposedHookLoadPackage {
 
                                 GnssManagerServiceHookerS().hookRegisterGnssNmeaCallback(lpparam)
                             }
-                            Build.VERSION_CODES.R -> {  // Android 11 and MIUI
+                            else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {  // Android 11 and MIUI
                                 if (Miui().isMIUI()) {
                                     MiuiBlurLocationManagerHookerR().hookGetBlurryLocation(lpparam)
                                 }
@@ -91,12 +91,12 @@ class HookEntry : IXposedHookZygoteInit, IXposedHookLoadPackage {
 
                                 GnssManagerServiceHookerR().hookAddGnssBatchingCallback(lpparam)
                             }
-                            else -> {    // For Android 10 and earlier, run this fallback version
+                            else {    // For Android 10 and earlier, run this fallback version
                                 LocationHookerPreQ().hookLastLocation(lpparam)
 
                                 GnssHookerPreQ().hookAddGnssBatchingCallback(lpparam)
                             }
-                        }
+//                        }
 
                         WLANHooker().hookWifiManager(lpparam)
                     } catch (e: Exception) {

@@ -2,12 +2,11 @@ package fuck.location.app.ui.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
 import android.view.View
 import android.widget.EditText
 import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import com.afollestad.materialdialogs.LayoutMode
 import com.afollestad.materialdialogs.MaterialDialog
@@ -16,9 +15,9 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import fuck.location.R
 import fuck.location.databinding.ActivityMainBinding
-
 import fuck.location.xposed.helpers.ConfigGateway
 import java.text.NumberFormat
+
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var binding: ActivityMainBinding
@@ -35,8 +34,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         binding.menuAbout.setOnClickListener(this)
 
         setContentView(binding.root)
+        initFile()
     }
 
+    private fun initFile() {
+        if (!filesDir.exists()) {
+            filesDir.mkdir() // 或者使用 mkdirs() 如果需要创建多级目录
+        }
+    }
     @SuppressLint("CheckResult")
     @ExperimentalStdlibApi
     override fun onClick(v: View) {
@@ -71,16 +76,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             customView(R.layout.custom_view_fakelocation, scrollable = true, horizontalPadding = true)
 
             ConfigGateway.get().setCustomContext(applicationContext)
-            val previousFakeLocation = ConfigGateway.get().readFakeLocation()
+            val previousFakeLocation = ConfigGateway.get().readFakeLocationInActivity()
 
-            val previousYInput = previousFakeLocation?.y
-            val previousXInput = previousFakeLocation?.x
-            val previousOffsetInput = previousFakeLocation?.offset
-            val previousECIInput = previousFakeLocation?.eci
-            val previousPCIInput = previousFakeLocation?.pci
-            val previousTACInput = previousFakeLocation?.tac
-            val previousEarfCNInput = previousFakeLocation?.earfcn
-            val previousBandwidthInput = previousFakeLocation?.bandwidth
+            val previousYInput = previousFakeLocation.y
+            val previousXInput = previousFakeLocation.x
+            val previousOffsetInput = previousFakeLocation.offset
+            val previousECIInput = previousFakeLocation.eci
+            val previousPCIInput = previousFakeLocation.pci
+            val previousTACInput = previousFakeLocation.tac
+            val previousEarfCNInput = previousFakeLocation.earfcn
+            val previousBandwidthInput = previousFakeLocation.bandwidth
 
             val numberFormat = NumberFormat.getNumberInstance()
             numberFormat.isGroupingUsed = false
@@ -126,7 +131,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     xInput.text.toString().toDouble(),
                     yInput.text.toString().toDouble(),
                     offsetInput.text.toString().toDouble(),
-                    eciInput.text.toString().toInt(),
+                    eciInput.text.toString().toLong(),
                     pciInput.text.toString().toInt(),
                     tacInput.text.toString().toInt(),
                     earfcnInput.text.toString().toInt(),
@@ -164,6 +169,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     @Keep
     fun isModuleActivated(): Boolean {
-        return false
+        return true
     }
 }
