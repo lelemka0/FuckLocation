@@ -19,7 +19,7 @@ class GnssHookerPreQ {
             name == "addGnssBatchingCallback" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssBatchingCallback (Pre Q)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssBatchingCallback (Pre Q)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -32,7 +32,7 @@ class GnssHookerPreQ {
             name == "addGnssDataListener" && isPrivate
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssDataListener (Pre Q)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssDataListener (Pre Q)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -46,7 +46,7 @@ class GnssHookerPreQ {
             name == "addGnssMeasurementsListener" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssMeasurementsListener (Pre Q)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssMeasurementsListener (Pre Q)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -59,7 +59,7 @@ class GnssHookerPreQ {
             name == "addGnssNavigationMessageListener" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssNavigationMessageListener (Pre Q)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssNavigationMessageListener (Pre Q)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")

@@ -43,7 +43,7 @@ class Lte {
 
         val customResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             constructor.newInstance(
-                ConfigGateway.get().readFakeLocation().eci,  // ECI
+                ConfigGateway.get().readFakeLocation().eci.toInt(),  // ECI
                 ConfigGateway.get().readFakeLocation().pci,  // Pci
                 ConfigGateway.get().readFakeLocation().tac,  // Tac
                 ConfigGateway.get().readFakeLocation().earfcn,  // Earfcn
@@ -58,7 +58,7 @@ class Lte {
             )
         } else {
             constructor.newInstance(
-                ConfigGateway.get().readFakeLocation().eci,  // CI
+                ConfigGateway.get().readFakeLocation().eci.toInt(),  // CI
                 ConfigGateway.get().readFakeLocation().pci,  // Pci
                 ConfigGateway.get().readFakeLocation().tac,  // Tac
                 ConfigGateway.get().readFakeLocation().earfcn,  // Earfcn

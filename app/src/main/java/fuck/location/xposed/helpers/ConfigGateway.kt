@@ -21,6 +21,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
 import java.lang.IllegalArgumentException
+import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 
 /*
@@ -32,11 +33,10 @@ class ConfigGateway private constructor() {
     // Magic number to identify whether this call is from our module
     private val magicNumber = -114514
     private val magicNumberLocation = -191931
-    private val usrDir = "/data/user/0/fuck.location/files"
 
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private lateinit var dataDir: String
-    private lateinit var customContext: Context
+    private lateinit var customContext: WeakReference<Context>
 
     /* For getting started in framework. In default, it judges whether a
      * packageName is in whiteList.json or not.
@@ -50,13 +50,12 @@ class ConfigGateway private constructor() {
      */
 
     companion object {
-        // TODO: Memory leak
         private var instance: ConfigGateway? = null
             get() {
                 if (field == null) {
                     field = ConfigGateway()
                 }
-                return field
+                return field!!
             }
 
         fun get(): ConfigGateway {
@@ -67,6 +66,7 @@ class ConfigGateway private constructor() {
     @ExperimentalStdlibApi
     @SuppressLint("PrivateApi")
     fun hookWillChangeBeEnabled(lpparam: XC_LoadPackage.LoadPackageParam) {
+        setDataPath()
         val clazz = lpparam.classLoader.loadClass("com.android.server.am.ActivityManagerService")
 
         XposedBridge.log("FL: [debug !!] Finding method")
@@ -100,9 +100,44 @@ class ConfigGateway private constructor() {
     @ExperimentalStdlibApi
     fun hookGetTagForIntentSender(lpparam: XC_LoadPackage.LoadPackageParam) {
         val clazz = lpparam.classLoader.loadClass("com.android.server.pm.PackageManagerService")
+        val clazz1 = lpparam.classLoader.loadClass("android.app.ApplicationPackageManager")
+        val clazz2 = lpparam.classLoader.loadClass("com.android.server.pm.ComputerEngine")
+
 
         XposedBridge.log("FL: [debug !!] Finding method in getInstallerPackageName")
         findAllMethods(clazz) {
+            name == "getInstallerPackageName"
+        }.hookMethod {
+            before { param ->
+                when {
+                    param.args[0] == magicNumber.toString() -> {
+                        readPackageListInternal(param)
+                    }
+                    param.args[0] == magicNumberLocation.toString() -> {
+                        readFakeLocationInternal(param)
+                        return@before
+                    }
+                }
+                return@before
+            }
+        }
+        findAllMethods(clazz1) {
+            name == "getInstallerPackageName"
+        }.hookMethod {
+            before { param ->
+                when {
+                    param.args[0] == magicNumber.toString() -> {
+                        readPackageListInternal(param)
+                    }
+                    param.args[0] == magicNumberLocation.toString() -> {
+                        readFakeLocationInternal(param)
+                        return@before
+                    }
+                }
+                return@before
+            }
+        }
+        findAllMethods(clazz2) {
             name == "getInstallerPackageName"
         }.hookMethod {
             before { param ->
@@ -179,54 +214,23 @@ class ConfigGateway private constructor() {
             val json: String = try {
                 jsonFile.readText()
             } catch (e: FileNotFoundException) {
-                Log.d("FL: fakeLocation.json not found. Trying to refresh File holder")
+                XposedBridge.log("FL: fakeLocation.json not found. Trying to refresh File holder")
                 try {
                     jsonFile = File("$dataDir/fakeLocation.json")
+                    XposedBridge.log("FL: fakeLocation.json resumed.")
                     jsonFile.readText()
-                    Log.d("FL: fakeLocation.json resumed.")
                 } catch (e: FileNotFoundException) {
-                    Log.d("FL: not possible to refresh. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}")
+                    XposedBridge.log("FL: not possible to refresh. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0} ${e.stackTraceToString()}")
+                    "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
                 }
-                "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
             }
 
             param.result = json
         } catch (e: Exception) {
-            XposedBridge.log("FL: [debug !!] Fuck with exceptions! $e")
+            XposedBridge.log("FL: [debug !!] Fuck with exceptions! ${e.stackTraceToString()}")
 
             param.result = "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
         }
-    }
-
-    @ExperimentalStdlibApi
-    fun readFakeLocationInternal1(): FakeLocation {
-        var jsonFile = File("$dataDir/fakeLocation.json")
-
-        val json: String = try {
-            if (!jsonFile.exists()) {
-                val jsonFileDirectory = File("$dataDir/")
-                jsonFileDirectory.mkdirs()
-            }
-
-            try {
-                jsonFile.readText()
-            } catch (e: FileNotFoundException) {
-                Log.d("FL: fakeLocation.json not found. Trying to refresh File holder")
-                try {
-                    jsonFile = File("$dataDir/fakeLocation.json")
-                    jsonFile.readText()
-                    Log.d("FL: fakeLocation.json resumed.")
-                } catch (e: FileNotFoundException) {
-                    Log.d("FL: not possible to refresh. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}")
-                }
-                "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
-            }
-        } catch (e: Exception) {
-            XposedBridge.log("FL: [debug !!] Fuck with exceptions! $e")
-            "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
-        }
-        val jsonAdapter: JsonAdapter<FakeLocation> = moshi.adapter()
-        return jsonAdapter.fromJson(json)!!
     }
 
     private fun writePackageListInternal(param: XC_MethodHook.MethodHookParam) {
@@ -259,7 +263,7 @@ class ConfigGateway private constructor() {
         val magicContext: Context = try {
             AndroidAppHelper.currentApplication().applicationContext // Calling from xposed hook
         } catch (e: NoClassDefFoundError) {
-            customContext   // Calling from normal code
+            customContext.get()!!   // Calling from normal code
         }
 
         val activityManager =
@@ -295,30 +299,30 @@ class ConfigGateway private constructor() {
     @ExperimentalStdlibApi
     fun readPackageList(): List<String>? {
         val jsonAdapter: JsonAdapter<List<String>> = moshi.adapter()
-        var jsonFile = File("$usrDir/whiteList.json")
+//        var jsonFile = File("${customContext.get()?.filesDir}/whiteList.json")
         val json: String
-        if (jsonFile.exists()) {
-            json = try {
-                jsonFile.readText()
-            } catch (e: FileNotFoundException) {
-                Log.d("FL: whiteList.json not found. Trying to refresh File holder")
-                try {
-                    jsonFile = File("$usrDir/whiteList.json")
-                    jsonFile.readText()
-                    Log.d("FL: whiteList.json resumed.")
-                } catch (e: FileNotFoundException) {
-                    Log.d("FL: not possible to refresh. Fallback to []")
-                }
-                "[]"
-            }
-        } else {
+//        if (jsonFile.exists()) {
+//            json = try {
+//                jsonFile.readText()
+//            } catch (e: FileNotFoundException) {
+//                Log.d("FL: whiteList.json not found. Trying to refresh File holder")
+//                try {
+//                    jsonFile = File("${customContext.get()?.filesDir}/whiteList.json")
+//                    jsonFile.readText()
+//                    Log.d("FL: whiteList.json resumed.")
+//                } catch (e: FileNotFoundException) {
+//                    Log.d("FL: not possible to refresh. Fallback to []")
+//                }
+//                "[]"
+//            }
+//        } else {
             json = try {
                 universalAPICaller("None", 2) as String
             } catch (e: Exception) {
                 Log.d("FL: Failed to read package list. Fallback to []")
                 "[]"
             }
-        }
+//        }
 
         return jsonAdapter.fromJson(json)
     }
@@ -326,7 +330,7 @@ class ConfigGateway private constructor() {
     @ExperimentalStdlibApi
     fun readFakeLocationInActivity(): FakeLocation {
         val jsonAdapter: JsonAdapter<FakeLocation> = moshi.adapter()
-        var jsonFile = File("$usrDir/fakeLocation.json")
+        var jsonFile = File("${customContext.get()?.filesDir}/fakeLocation.json")
         val json: String
         if (jsonFile.exists()) {
             json = try {
@@ -334,7 +338,7 @@ class ConfigGateway private constructor() {
             } catch (e: FileNotFoundException) {
                 Log.d("FL: fakeLocation.json not found. Trying to refresh File holder")
                 try {
-                    jsonFile = File("$usrDir/fakeLocation.json")
+                    jsonFile = File("${customContext.get()?.filesDir}/fakeLocation.json")
                     jsonFile.readText()
                     Log.d("FL: fakeLocation.json resumed.")
                 } catch (e: FileNotFoundException) {
@@ -343,12 +347,7 @@ class ConfigGateway private constructor() {
                 "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
             }
         } else {
-            json = try {
-                universalAPICaller("None", 4) as String
-            } catch (e: Exception) {
-                Log.d("FL: Failed to read fake location. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}")
-                "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
-            }
+            json = "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
         }
 
         lateinit var jsonAdapterResult : FakeLocation
@@ -380,30 +379,30 @@ class ConfigGateway private constructor() {
     @ExperimentalStdlibApi
     fun readFakeLocation(): FakeLocation {
         val jsonAdapter: JsonAdapter<FakeLocation> = moshi.adapter()
-        var jsonFile = File("$dataDir/fakeLocation.json")
+//        var jsonFile = File("$dataDir/fakeLocation.json")
         val json: String
-        if (jsonFile.exists()) {
-            json = try {
-                jsonFile.readText()
-            } catch (e: FileNotFoundException) {
-                Log.d("FL: fakeLocation.json not found. Trying to refresh File holder")
-                try {
-                    jsonFile = File("$dataDir/fakeLocation.json")
-                    jsonFile.readText()
-                    XposedBridge.log("FL: fakeLocation.json resumed. $e")
-                } catch (e: FileNotFoundException) {
-                    XposedBridge.log("FL: not possible to refresh. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0} $e")
-                }
-                "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
-            }
-        } else {
+//        if (jsonFile.exists()) {
+//            json = try {
+//                jsonFile.readText()
+//            } catch (e: FileNotFoundException) {
+//                Log.d("FL: fakeLocation.json not found. Trying to refresh File holder")
+//                try {
+//                    jsonFile = File("$dataDir/fakeLocation.json")
+//                    jsonFile.readText()
+//                    XposedBridge.log("FL: fakeLocation.json resumed. $e")
+//                } catch (e: FileNotFoundException) {
+//                    XposedBridge.log("FL: not possible to refresh. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0} $e")
+//                }
+//                "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
+//            }
+//        } else {
             json = try {
                 universalAPICaller("None", 4) as String
             } catch (e: Exception) {
-                XposedBridge.log("FL: Failed to read fake location. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0} ${e.stackTrace}")
+                XposedBridge.log("FL: Failed to read fake location. Fallback to {\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0} ${e.stackTraceToString()}")
                 "{\"x\":0.0, \"y\":0.0, \"eci\":0, \"pci\":0, \"tac\":0, \"earfcn\":0, \"bandwidth\":0}"
             }
-        }
+//        }
 
         lateinit var jsonAdapterResult : FakeLocation
 
@@ -436,10 +435,10 @@ class ConfigGateway private constructor() {
         val jsonAdapter: JsonAdapter<List<String>> = moshi.adapter()
         val json: String = jsonAdapter.toJson(list)
 
-        val jsonFile = File("$usrDir/whiteList.json")
+        val jsonFile = File("${customContext.get()?.filesDir}/whiteList.json")
         if (!jsonFile.exists()) {
             if (!jsonFile.exists()) {
-                val jsonFileDirectory = File("$usrDir/")
+                val jsonFileDirectory = File("${customContext.get()?.filesDir}/")
                 jsonFileDirectory.mkdirs()
             }
 
@@ -456,10 +455,10 @@ class ConfigGateway private constructor() {
         val jsonAdapter: JsonAdapter<FakeLocation> = moshi.adapter()
 
         val json: String = jsonAdapter.toJson(newFakeLocation)
-        val jsonFile = File("$usrDir/fakeLocation.json")
+        val jsonFile = File("${customContext.get()?.filesDir}/fakeLocation.json")
         if (!jsonFile.exists()) {
             if (!jsonFile.exists()) {
-                val jsonFileDirectory = File("$usrDir/")
+                val jsonFileDirectory = File("${customContext.get()?.filesDir}/")
                 jsonFileDirectory.mkdirs()
             }
 
@@ -471,7 +470,7 @@ class ConfigGateway private constructor() {
     }
 
     fun setCustomContext(context: Context) {
-        customContext = context
+        customContext = WeakReference<Context>(context)
     }
 
     // For converting CallerIdentity to packageName
@@ -501,22 +500,20 @@ class ConfigGateway private constructor() {
     }
 
     fun setDataPath(){
-//        File("/data/system").list()?.forEach {  // Try to find the existing config
-//            if (it.equals("fuck_location_test")) {  // Migrate from older version
-//                val randomizedPath = "/data/system/fuck_location_${generateRandomAppendix()}"
-//                File("/data/system/$it").renameTo(File(randomizedPath))
-//                dataDir = randomizedPath
-//            } else if (it.startsWith("fuck_location")) {
-////                if (this::dataDir.isInitialized) File("/data/system/$it").deleteRecursively()
-//                if (!this::dataDir.isInitialized) dataDir = "/data/system/$it"
-//            }
-//        }
-        if (!this::dataDir.isInitialized) dataDir = "/data/system/fuck_location_ZPJ6EPDMUNDFZ69J"
-//        XposedBridge.log("FL: Path $dataDir")
-
-//        if (!this::dataDir.isInitialized) { // Not possible, we create a new config folder
-//            dataDir = "/data/system/fuck_location_${generateRandomAppendix()}"
-//        }
+        File("/data/system").list()?.forEach {  // Try to find the existing config
+            if (it.equals("fuck_location_test")) {  // Migrate from older version
+                val randomizedPath = "/data/system/fuck_location_${generateRandomAppendix()}"
+                File("/data/system/$it").renameTo(File(randomizedPath))
+                dataDir = randomizedPath
+            } else if (it.startsWith("fuck_location")) {
+                if (this::dataDir.isInitialized) File("/data/system/$it").deleteRecursively()
+                else dataDir = "/data/system/$it"
+            }
+        }
+        if (!this::dataDir.isInitialized) { // Not possible, we create a new config folder
+            dataDir = "/data/system/fuck_location_${generateRandomAppendix()}"
+        }
+        XposedBridge.log("FL: Config path $dataDir")
     }
 
     private fun generateRandomAppendix() : String {

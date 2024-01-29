@@ -22,7 +22,7 @@ class LocationHookerPreQ {
         }.hookMethod {
             after {
                 val packageName = ConfigGateway.get().callerIdentityToPackageName(it.args[1])
-                XposedBridge.log("FL: in getLastLocation (Pre Q)! Caller package name: $packageName")
+//                XposedBridge.log("FL: in getLastLocation (Pre Q)! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     XposedBridge.log("FL: in whitelist! Return custom location")

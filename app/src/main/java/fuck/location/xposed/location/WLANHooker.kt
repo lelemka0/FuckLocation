@@ -21,7 +21,7 @@ class WLANHooker {
             name == "loadClassFromLoader" && isPrivate && isStatic
         }.hookMethod {
             after { param ->
-                XposedBridge.log("FL: in loadClassFromLoader with service: " + param.args[0])
+//                XposedBridge.log("FL: in loadClassFromLoader with service: " + param.args[0])
                 if (param.args[0] == "com.android.server.wifi.WifiService") {
                     XposedBridge.log("FL: Awesome! Now we are finding the REAL method...")
                     try {
@@ -33,7 +33,7 @@ class WLANHooker {
                         }.hookMethod {
                             after { param ->
                                 val packageName = param.args[0] as String
-                                XposedBridge.log("FL: In getScanResults with caller: $packageName")
+//                                XposedBridge.log("FL: In getScanResults with caller: $packageName")
 
                                 if (ConfigGateway.get().inWhitelist(packageName)) {
                                     XposedBridge.log("FL: in whitelist! Return custom WiFi information")
@@ -57,10 +57,10 @@ class WLANHooker {
                         }.hookMethod {
                             after { param ->
                                 val packageName = param.args[0] as String
-                                XposedBridge.log("FL: In getConnectionInfo with caller: $packageName")
+//                                XposedBridge.log("FL: In getConnectionInfo with caller: $packageName")
 
                                 if (ConfigGateway.get().inWhitelist(packageName)) {
-                                    XposedBridge.log("FL: in whitelist! Return custom WiFi information")
+//                                    XposedBridge.log("FL: in whitelist! Return custom WiFi information")
 
                                     val customResult = WifiInfo.Builder()
                                         .setBssid("")
@@ -70,7 +70,7 @@ class WLANHooker {
                                         .build()
 
                                     param.result = customResult
-                                    XposedBridge.log("FL: BSSID: ${customResult.bssid}, SSID: ${customResult.ssid}")
+//                                    XposedBridge.log("FL: BSSID: ${customResult.bssid}, SSID: ${customResult.ssid}")
                                 }
                             }
                         }

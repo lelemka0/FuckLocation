@@ -169,6 +169,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     @Keep
     fun isModuleActivated(): Boolean {
-        return true
+        return false
     }
 }

@@ -29,11 +29,11 @@ import java.lang.Exception
 
 @ExperimentalStdlibApi
 class HookEntry : IXposedHookZygoteInit, IXposedHookLoadPackage {
+
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
         EzXHelperInit.initZygote(startupParam)
-        XposedBridge.log("FL: in initZygote!")
 
-        ConfigGateway.get().setDataPath()
+        XposedBridge.log("FL: in initZygote!")
     }
 
     @SuppressLint("PrivateApi", "ObsoleteSdkInt", "NewApi")
