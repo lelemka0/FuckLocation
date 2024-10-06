@@ -10,27 +10,21 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      - name: Set JAVA_HOME
-        run: echo "JAVA_HOME=${{ steps.setup-java.outputs.java-home }}" >> $GITHUB_ENV
-      - id: get-project
-        name: Get project FuckLocation
-        run: echo "::set-output name=PROJECT::$(cat project-to-build)"
-      - name: Clone project
-        run: git clone --depth=1 ${{ steps.get-project.outputs.PROJECT }} https://github.com/AndyWangM/FuckLocation.git
       - name: Build the app
-        working-directory: ./FuckLocation
         run: |
           if [ ! -f "gradlew" ]; then gradle wrapper; fi
           chmod +x gradlew
           ./gradlew assembleDebug --info
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: ./FuckLocation/app/build/outputs/apk/debug/app-debug.apk
