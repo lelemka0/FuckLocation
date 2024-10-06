@@ -5,7 +5,7 @@ class FakeLocation(
     val y: Double,
     val offset:Double,
 
-    val eci: Int,
+    val eci: Long,
     val pci: Int,
     val tac: Int,
     val earfcn: Int,

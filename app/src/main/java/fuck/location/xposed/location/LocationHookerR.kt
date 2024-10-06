@@ -25,7 +25,7 @@ class LocationHookerR {
         }.hookMethod {
             after {
                 val packageName = ConfigGateway.get().callerIdentityToPackageName(it.args[1])
-                XposedBridge.log("FL: in getLastLocation! Caller package name: $packageName")
+//                XposedBridge.log("FL: in getLastLocation! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     XposedBridge.log("FL: in whitelist! Return custom location")
@@ -175,7 +175,7 @@ class LocationHookerR {
             name == "requestGeofence" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[3] as String
-            XposedBridge.log("FL: in requestGeofence (R)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in requestGeofence (R)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")

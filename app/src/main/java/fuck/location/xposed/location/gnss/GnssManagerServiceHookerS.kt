@@ -18,7 +18,7 @@ class GnssManagerServiceHookerS {
             name == "registerGnssStatusCallback" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in registerGnssStatusCallback! Caller package name: $packageName")
+//            XposedBridge.log("FL: in registerGnssStatusCallback! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -31,7 +31,7 @@ class GnssManagerServiceHookerS {
             name == "registerGnssNmeaCallback" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in registerGnssNmeaCallback! Caller package name: $packageName")
+//            XposedBridge.log("FL: in registerGnssNmeaCallback! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -44,7 +44,7 @@ class GnssManagerServiceHookerS {
             name == "addGnssMeasurementsListener" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[2] as String
-            XposedBridge.log("FL: in addGnssMeasurementsListener! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssMeasurementsListener! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -57,7 +57,7 @@ class GnssManagerServiceHookerS {
             name == "addGnssNavigationMessageListener" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssNavigationMessageListener! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssNavigationMessageListener! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -70,7 +70,7 @@ class GnssManagerServiceHookerS {
             name == "addGnssAntennaInfoListener" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in addGnssAntennaInfoListener! Caller package name: $packageName")
+//            XposedBridge.log("FL: in addGnssAntennaInfoListener! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")

@@ -31,7 +31,7 @@ class PhoneInterfaceManagerHooker {
                 val packageName = param.args[1] as String
                 val customIMEI = "1234567891011120" // TODO: Support custom IMEI information
 
-                XposedBridge.log("FL: [Cellar] in getImeiForSlot! Caller package name: $packageName")
+//                XposedBridge.log("FL: [Cellar] in getImeiForSlot! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     param.result = customIMEI
@@ -61,7 +61,7 @@ class PhoneInterfaceManagerHooker {
         }.hookMethod {
             after { param ->
                 val packageName = param.args[0] as String
-                XposedBridge.log("FL: [Cellar] in getCellLocation! Caller package name: $packageName")
+//                XposedBridge.log("FL: [Cellar] in getCellLocation! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     XposedBridge.log("FL: [Cellar] in whiteList! Return custom cell data information")
@@ -95,7 +95,7 @@ class PhoneInterfaceManagerHooker {
         }.hookMethod {
             before { param ->
                 val packageName = param.args[0] as String
-                XposedBridge.log("FL: [Cellar] in getAllCellInfo! Caller package name: $packageName")
+//                XposedBridge.log("FL: [Cellar] in getAllCellInfo! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     XposedBridge.log("FL: [Cellar] in whiteList! Return empty AllCellInfo for testing purpose.")
@@ -110,7 +110,7 @@ class PhoneInterfaceManagerHooker {
         }.hookMethod {
             before { param ->
                 val packageName = param.args[0] as String
-                XposedBridge.log("FL: [Cellar] in getNeighboringCellInfo! Caller package name: $packageName")
+//                XposedBridge.log("FL: [Cellar] in getNeighboringCellInfo! Caller package name: $packageName")
 
                 if (ConfigGateway.get().inWhitelist(packageName)) {
                     XposedBridge.log("FL: [Cellar] in whiteList! Return empty NeighboringCellInfo for testing purpose.")
@@ -124,7 +124,7 @@ class PhoneInterfaceManagerHooker {
             name == "requestCellInfoUpdateInternal" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[2] as String
-            XposedBridge.log("FL: [Cellar] in requestCellInfoUpdateInternal! Caller package name: $packageName")
+//            XposedBridge.log("FL: [Cellar] in requestCellInfoUpdateInternal! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")

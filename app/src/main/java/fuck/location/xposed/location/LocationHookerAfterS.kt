@@ -109,7 +109,7 @@ class LocationHookerAfterS {
             name == "registerGnssStatusCallback" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in registerGnssStatusCallback (S, DLC)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in registerGnssStatusCallback (S, DLC)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -122,7 +122,7 @@ class LocationHookerAfterS {
             name == "registerGnssNmeaCallback" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[1] as String
-            XposedBridge.log("FL: in registerGnssNmeaCallback (S, DLC)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in registerGnssNmeaCallback (S, DLC)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -135,7 +135,7 @@ class LocationHookerAfterS {
             name == "requestGeofence" && isPublic
         }.hookBefore { param ->
             val packageName = param.args[2] as String
-            XposedBridge.log("FL: in requestGeofence (S, DLC)! Caller package name: $packageName")
+//            XposedBridge.log("FL: in requestGeofence (S, DLC)! Caller package name: $packageName")
 
             if (ConfigGateway.get().inWhitelist(packageName)) {
                 XposedBridge.log("FL: in whiteList! Dropping register request...")
@@ -148,7 +148,7 @@ class LocationHookerAfterS {
     @RequiresApi(Build.VERSION_CODES.S)
     @OptIn(ExperimentalStdlibApi::class)
     private fun hookOnReportLocation(clazz: Class<*>, param: XC_MethodHook.MethodHookParam) {
-        XposedBridge.log("FL: in onReportLocation!")
+//        XposedBridge.log("FL: in onReportLocation!")
 
         val mRegistrations = findField(clazz, true) {
             name == "mRegistrations"
